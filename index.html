@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>ZCAD Bundler</title>
+    <link rel="stylesheet" href="styles/tachyons.min.css" />
+    <link rel="stylesheet" href="styles/main.css" />
+  </head>
+  <body>
+    <div id="dropZoneWrapper">
+      <div id="dropZone">
+      <form class="my-form">
+        <p>Drag and drop a ZCAD file to bundle</p>
+        <input type="file" id="fileElem" multiple accept="*.glb" onchange="handleFiles(this.files)" />
+        <label class="button" for="fileElem">Select a ZCAD file</label>
+      </form>
+    </div>
+
+    <script type="module">
+
+      // /////////////////////////////////////
+      // Drag-n-Drop support
+      const dropZoneWrapper = document.getElementById('dropZoneWrapper')
+      const dropArea = document.getElementById('dropZone')
+      ;['dragenter', 'dragover', 'dragleave', 'drop'].forEach((eventName) => {
+        dropZoneWrapper.addEventListener(eventName, preventDefaults, false)
+      })
+
+      function preventDefaults(e) {
+        e.preventDefault()
+        e.stopPropagation()
+      }
+      ;['dragenter', 'dragover'].forEach((eventName) => {
+        dropZoneWrapper.addEventListener(eventName, highlight, false)
+      })
+      ;['dragleave', 'drop'].forEach((eventName) => {
+        dropZoneWrapper.addEventListener(eventName, unhighlight, false)
+      })
+
+      function highlight(e) {
+        dropArea.classList.remove('hidden')
+        dropArea.classList.add('highlight')
+      }
+
+      function unhighlight(e) {
+        dropArea.classList.remove('highlight')
+      }
+      dropArea.addEventListener('drop', handleDrop, false)
+
+      function handleDrop(e) {
+        let dt = e.dataTransfer
+        let files = dt.files
+
+        handleFiles(files)
+      }
+      function download(filename, text) {
+        var element = document.createElement('a');
+        element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+        element.setAttribute('download', filename);
+
+        element.style.display = 'none';
+        document.body.appendChild(element);
+
+        element.click();
+
+        document.body.removeChild(element);
+      }
+
+      function handleFiles(files) {
+        ([...files]).forEach((file) => {
+          if (file) {
+            const reader = new FileReader();
+
+            reader.addEventListener("load", function () {
+              // convert image file to base64 string
+              fetch('template.html')
+              .then(response => response.text())
+              .then(data => {
+                let result = data.replace('{{ZCAD_URL}}', reader.result)
+                result = result.replace('{{TITLE}}', file.name)
+                // result = data.replaceALL('{{BASE_URL}}', document.location.origin)
+                const stem = file.name.substring(0, file.name.length -4)
+                download(stem+'html', result)
+              })
+            }, false);
+
+            reader.readAsDataURL(file);
+          }
+        })
+      }
+      window.handleFiles = handleFiles
+    </script>
+  </body>
+</html>
