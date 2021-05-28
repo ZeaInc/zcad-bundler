@@ -37,7 +37,7 @@ const appData = {
 };
 
 const selectionManager = new SelectionManager(appData, {
-  enableXfoHandles: true,
+  enableXfoHandles: false,
 });
 
 appData.selectionManager = selectionManager;
